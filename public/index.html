@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <img id="image" width="640" height="360">
+  <div id="info"></div>
+  
+  <! --Connecting html page to socket.io -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+  <script>
+    const socket = io.connect('http://localhost:3000');
+  
+    socket.on('image', (data)=>{
+      const imageEle = document.getElementById('image');
+      imageEle.src = `data:image/jpeg;base64,${data}`;
+    });
+
+    socket.on('info', (data)=>{
+      const imageEle = document.getElementById('info');
+      imageEle.innerHTML = data;
+    });
+  </script>
+</body>
+</html>

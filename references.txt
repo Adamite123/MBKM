@@ -1,0 +1,2 @@
+npm & node version on opencv installation:
+https://github.com/justadudewhohacks/opencv4nodejs/issues/775#issuecomment-878141077
