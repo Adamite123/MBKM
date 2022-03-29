@@ -30,6 +30,12 @@ class dnn {
     }
     
     
+    //get accuration
+    accuration(){
+        
+    }
+
+
     detectObject(frame){
         const cv = this.cv;
         // const rawFrame = frame.copy();
