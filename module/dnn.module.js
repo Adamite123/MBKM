@@ -7,6 +7,8 @@ const { Rect } = require("opencv4nodejs");
 let countNotFace = 0;
 
 class dnn {
+
+    //FUNGSI KONTRUKTOR
     constructor(cv){
         this.cv = cv
 
@@ -29,13 +31,8 @@ class dnn {
         }
     }
     
-    
-    //get accuration
-    accuration(){
-        
-    }
 
-
+    //FUNGSI DETEKSI OBJEK >> START
     detectObject(frame){
         const cv = this.cv;
         // const rawFrame = frame.copy();
@@ -43,6 +40,7 @@ class dnn {
         const confidenceThreshold = 0.5;
         const inScaleFactor = 1;
         
+        //Array blob
         const blob = cv.blobFromImage(
             frame,
             inScaleFactor,
@@ -58,6 +56,7 @@ class dnn {
         
         this.net.setInput(blob, "data");
         const detection = this.net.forward("detection_out");
+
         const detectionMat = new cv.Mat(
             detection.sizes[2],
             detection.sizes[3],
@@ -65,6 +64,19 @@ class dnn {
             detection
         );
         
+        // console.log("0 = "+detectionMat.at(0, 3));
+        // console.log("1 = "+detectionMat.at(1, 3));
+        // console.log("2 = "+detectionMat.at(2, 3));
+        // console.log("3 = "+detectionMat.at(3, 3));
+        // console.log("====");
+        // console.log("0 = "+detectionMat.at(0, 4));
+        // console.log("1 = "+detectionMat.at(1, 4));
+        // console.log("2 = "+detectionMat.at(2, 4));
+        // console.log("3 = "+detectionMat.at(3, 4));
+        // console.log("====");
+        // cv.waitKey(5000);
+
+        //deklarasi var
         let detectedObjects = {};
         let isFaceFound = false;
 
@@ -80,6 +92,7 @@ class dnn {
                 let height = y2-y1;
                 let width = x2-x1;
                 
+                //Isian object(frame)
                 detectedObjects = {
                   x1,
                   y1,
@@ -96,7 +109,8 @@ class dnn {
                 // console.log(idx, detectedObjects);
                 
                 if(x1 > 0 && y1 > 0 && x2 > 0 && y2 > 0){
-                    // Get head based on edge
+
+                    // Get head based on edge. Kirim ke fungsi detectedEdge()
                     detectedObjects.detectedEdge = this.detectedEdge({
                       x1,
                       y1,
@@ -160,8 +174,7 @@ class dnn {
     }
 
 
-
-
+    // FUNGSI DETEKSI TEPI >> START
     detectedEdge({x1, y1, x2, y2, frame}){
         const cv = this.cv;
 
@@ -170,13 +183,15 @@ class dnn {
         
         let croppedFrame = frame.copy();
 
+        // console.log(croppedFrame.rows);
+
         const cropArea = {
             x: xCenter - 1,
             y: 0,
             width: 3,
             height: y1
         }
-
+        //??
         if (
             0 > cropArea.x ||
             0 > cropArea.width ||
@@ -188,23 +203,29 @@ class dnn {
             console.log("crop area not valid");
             return {};
         }
+        
+        // console.log(croppedFrame.rows);
 
+        //Crop image rambut from kamera
         croppedFrame = croppedFrame.getRegion(
           new cv.Rect(cropArea.x, cropArea.y, cropArea.width, cropArea.height)
         );
-
+            
         if (croppedFrame.rows <= 0 || croppedFrame.cols <= 0) {
             console.log("crop area is empty");
             return {};
         }
+        
+        // console.log(croppedFrame.rows);
+        // cv.waitKey(5000);
 
-
-        // grayscale and blur it, to smooth image
+        // Step 1. Color intensity. grayscale and blur it, to smooth image
         croppedFrame = croppedFrame.cvtColor(cv.COLOR_BGR2GRAY);
         croppedFrame = croppedFrame.gaussianBlur(new cv.Size(25, 25), 0);
         // croppedFrame = croppedFrame.laplacian(cv.CV_64F);
 
-        // measure intensity per pixel
+
+        // Step 2. Measure intensity per pixel
         let mid = [];
         let means = 0;
         let counter = 0;
@@ -215,21 +236,27 @@ class dnn {
             let oldMid = Math.abs(croppedFrame.at(lIndex - 1, 1));
             const subMid = Math.abs(newMid - oldMid);
 
+            // console.log(newMid);
+            // console.log(croppedFrame.rows);
+
             if (subMid > 0) {
                 means += subMid;
                 counter++;
             }
             mid.push(subMid);
         }
-
         means = Math.ceil(means / counter);
 
+        // console.log(croppedFrame.rows);
+        // console.log("======");
+        // cv.waitKey(5000)
 
         // get second means of intensity to get neared edge from face (filtering)
 
         let means2 = 0;
         let counter2 = 0;
         for (let lIndex = 0; lIndex < mid.length; lIndex++) {
+
             if(mid[lIndex] < means){
                 mid[lIndex] = 0;
             }else{
@@ -246,6 +273,7 @@ class dnn {
             }
         }
 
+        //Cari garis mendekati rambut
         let nearedEdgeIndex = 0;
         for (let lIndex = mid.length - 3; lIndex >= 2; lIndex--) {
             if (mid[lIndex] != 0) {
@@ -264,15 +292,16 @@ class dnn {
         // );
 
         if((y2 - y1) / 2 < y1 - nearedEdgeIndex){
-            console.log("your hair is too high, perhaps it's not your hair");
+            patokan+=1;
+            console.log("your hair is too high, perhaps it's not your hair. ke - "+patokan);
             return {};
         }
-
+        
         return {
             means,
             means2,
             nearedEdgeIndex,
-            fullHeight: croppedFrame.rows,
+            fullHeight: croppedFrame.rows
         };
     }
 

@@ -6,6 +6,7 @@
   
   <! --Connecting html page to socket.io -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+
   <script>
     const socket = io.connect('http://localhost:3000');
   
@@ -19,5 +20,6 @@
       imageEle.innerHTML = data;
     });
   </script>
+  
 </body>
 </html>

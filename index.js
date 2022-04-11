@@ -11,8 +11,11 @@ const m$ObjectDetection = new _m$ObjectDetection(cv);
 const _m$Calibration = require("./module/calibration.module.js");
 const m$Calibration = new _m$Calibration(cv);
     
-const FRAME_WIDTH = 1024;
-const FRAME_HEIGHT = 576;
+// const FRAME_WIDTH = 1024;
+// const FRAME_HEIGHT = 576;
+
+const FRAME_WIDTH = 640;
+const FRAME_HEIGHT = 480;
 
 const MODE = "NORMAL"; // ["CALIBRATION", "NORMAL"]
 
@@ -29,6 +32,8 @@ wCap.set(cv.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
 app.get('/', (req, res)=>{
     res.sendFile(path.join(__dirname, 'public/index.html'));
 });
+
+patokan = 0;
 
 // Using setInterval to read the image every one second.
 setInterval(()=>{
@@ -62,7 +67,7 @@ setInterval(()=>{
             io.emit("image", image);
         }
     }
-}, 100)
+}, 10)
 
 server.listen(3000);
     

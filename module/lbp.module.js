@@ -8,6 +8,7 @@
  */
 
 class lbp {
+    
     constructor(cv){
         this.cv = cv
     }
